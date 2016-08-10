@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>TSIPStack Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset="utf-8">
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+  </head>
+  <body>
+
+    <a name="//apple_ref/swift/Class/TSIPStack" class="dashAnchor"></a>
+
+    <a title="TSIPStack Class Reference"></a>
+
+    <header class="header">
+      <p class="header-col header-col--primary">
+        <a class="header-link" href="../index.html">
+          tun2socks Docs
+        </a>
+         (100% documented)
+      </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="https://github.com/zhuhaow/tun2socks">
+            <img class="header-icon" src="../img/gh.png"/>
+            View on GitHub
+          </a>
+        </p>
+    
+    </header>
+
+    <p class="breadcrumbs">
+      <a class="breadcrumb" href="../index.html">tun2socks Reference</a>
+      <img class="carat" src="../img/carat.png" />
+      TSIPStack Class Reference
+    </p>
+
+    <div class="content-wrapper">
+      <nav class="navigation">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/TSIPStack.html">TSIPStack</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/TSTCPSocket.html">TSTCPSocket</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/TSIPStackDelegate.html">TSIPStackDelegate</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/TSTCPSocketDelegate.html">TSTCPSocketDelegate</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+
+        <section class="section">
+          <div class="section-content">
+            <h1>TSIPStack</h1>
+              <div class="declaration">
+                <div class="language">
+                  <pre class="highlight"><code><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">TSIPStack</span></code></pre>
+
+                </div>
+              </div>
+            <p>This is the IP stack that receives and outputs IP packets.</p>
+
+<p><code>outputBlock</code> and <code>delegate</code> should be set before any input.
+Then call <code>receivedPacket(_:)</code> when a new IP packet is read from the TUN interface.</p>
+
+<p>There is a timer running internally. When the device is going to sleep (which means the timer will not fire for some time), then the timer must be paused by calling <code>suspendTimer()</code> and resumed by <code>resumeTimer()</code> when the deivce wakes up.</p>
+
+<div class="aside aside-note">
+    <p class="aside-title">Note</p>
+    This class is thread-safe.
+
+</div>
+
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-content">
+            <div class="task-group">
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZvC9tun2socks9TSIPStack5stackS0_"></a>
+                    <a name="//apple_ref/swift/Variable/stack" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZvC9tun2socks9TSIPStack5stackS0_">stack</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The singleton stack instance that developer should use. The <code>init()</code> method is a private method, which means there will never be more than one IP stack running at the same time.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">var</span> <span class="nv">stack</span> <span class="o">=</span> <span class="kt">TSIPStack</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC9tun2socks9TSIPStack11outputBlockGSQFTGSaCSo6NSData_GSaCSo8NSNumber__T__"></a>
+                    <a name="//apple_ref/swift/Property/outputBlock" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC9tun2socks9TSIPStack11outputBlockGSQFTGSaCSo6NSData_GSaCSo8NSNumber__T__">outputBlock</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>When the IP stack decides to output some IP packets, this block is called.</p>
+
+<div class="aside aside-warning">
+    <p class="aside-title">Warning</p>
+    This should be set before any input.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">outputBlock</span><span class="p">:</span> <span class="p">(([</span><span class="kt">NSData</span><span class="p">],</span> <span class="p">[</span><span class="kt">NSNumber</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="p">())</span><span class="o">!</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC9tun2socks9TSIPStack8delegateXwGSqPS_17TSIPStackDelegate__"></a>
+                    <a name="//apple_ref/swift/Property/delegate" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC9tun2socks9TSIPStack8delegateXwGSqPS_17TSIPStackDelegate__">delegate</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The delegate instance.</p>
+
+<div class="aside aside-warning">
+    <p class="aside-title">Warning</p>
+    Setting this variable is not protected in the GCD queue, so this shoule be set before any input and shoule never change afterwards.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="k">weak</span> <span class="k">var</span> <span class="nv">delegate</span><span class="p">:</span> <span class="kt"><a href="../Protocols/TSIPStackDelegate.html">TSIPStackDelegate</a></span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC9tun2socks9TSIPStack12suspendTimerFT_T_"></a>
+                    <a name="//apple_ref/swift/Method/suspendTimer()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC9tun2socks9TSIPStack12suspendTimerFT_T_">suspendTimer()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Suspend the timer. The timer should be suspended when the device is going to sleep.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">suspendTimer</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC9tun2socks9TSIPStack11resumeTimerFT_T_"></a>
+                    <a name="//apple_ref/swift/Method/resumeTimer()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC9tun2socks9TSIPStack11resumeTimerFT_T_">resumeTimer()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Resume the timer when the device is awoke.</p>
+
+<div class="aside aside-warning">
+    <p class="aside-title">Warning</p>
+    Do not call this unless the stack is not resumed or you suspend the timer.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">resumeTimer</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC9tun2socks9TSIPStack14receivedPacketFCSo6NSDataT_"></a>
+                    <a name="//apple_ref/swift/Method/receivedPacket(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC9tun2socks9TSIPStack14receivedPacketFCSo6NSDataT_">receivedPacket(_:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Input an IP packet.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">receivedPacket</span><span class="p">(</span><span class="nv">data</span><span class="p">:</span> <span class="kt">NSData</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>data</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>the data containing the whole IP packet.</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </article>
+    </div>
+    <section class="footer">
+      <p>&copy; 2016 <a class="link" href="" target="_blank" rel="external">Zhuhao Wang</a>. All rights reserved. (Last updated: 2016-08-10)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.7.0</a>, a <a class="link" href="http://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+    </section>
+  </body>
+</div>
+</html>
