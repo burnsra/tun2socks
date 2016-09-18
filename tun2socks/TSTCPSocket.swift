@@ -8,22 +8,22 @@ public protocol TSTCPSocketDelegate: class {
     /**
      The socket is closed on tx side (FIN received). We will not read any data.
      */
-    func localDidClose(socket: TSTCPSocket)
+    func localDidClose(_ socket: TSTCPSocket)
 
     /**
      The socket is reseted (RST received), it should be released immediately.
      */
-    func socketDidReset(socket: TSTCPSocket)
+    func socketDidReset(_ socket: TSTCPSocket)
 
     /**
      The socket is aborted (RST sent), it should be released immediately.
      */
-    func socketDidAbort(socket: TSTCPSocket)
+    func socketDidAbort(_ socket: TSTCPSocket)
 
     /**
      The socket is closed. This will only be triggered if the socket is closed actively by calling `close()`. It should be released immediately.
      */
-    func socketDidClose(socket: TSTCPSocket)
+    func socketDidClose(_ socket: TSTCPSocket)
 
 
     /**
@@ -32,7 +32,7 @@ public protocol TSTCPSocketDelegate: class {
      - parameter data: The read data.
      - parameter from: The socket object.
      */
-    func didReadData(data: NSData, from: TSTCPSocket)
+    func didReadData(_ data: Data, from: TSTCPSocket)
 
     /**
      The socket has sent the specific length of data.
@@ -40,16 +40,16 @@ public protocol TSTCPSocketDelegate: class {
      - parameter length: The length of data being ACKed.
      - parameter from:   The socket.
      */
-    func didWriteData(length: Int, from: TSTCPSocket)
+    func didWriteData(_ length: Int, from: TSTCPSocket)
 }
 
 // There is no way the error will be anything but ERR_OK, so the `error` parameter should be ignored.
-func tcp_recv_func(arg: UnsafeMutablePointer<Void>, pcb: UnsafeMutablePointer<tcp_pcb>, buf: UnsafeMutablePointer<pbuf>, error: err_t) -> err_t {
+func tcp_recv_func(_ arg: UnsafeMutableRawPointer?, pcb: UnsafeMutablePointer<tcp_pcb>, buf: UnsafeMutablePointer<pbuf>, error: err_t) -> err_t {
     assert(error == err_t(ERR_OK))
 
     assert(arg != nil)
 
-    guard let socket = SocketDict.lookup(UnsafeMutablePointer<Int>(arg).memory) else {
+    guard let socket = SocketDict.lookup(UnsafeMutablePointer<Int>(arg).pointee) else {
         // we do not know what this socket is, abort it
         tcp_abort(pcb)
         return err_t(ERR_ABRT)
@@ -58,10 +58,10 @@ func tcp_recv_func(arg: UnsafeMutablePointer<Void>, pcb: UnsafeMutablePointer<tc
     return err_t(ERR_OK)
 }
 
-func tcp_sent_func(arg: UnsafeMutablePointer<Void>, pcb: UnsafeMutablePointer<tcp_pcb>, len: UInt16) -> err_t {
+func tcp_sent_func(_ arg: UnsafeMutableRawPointer?, pcb: UnsafeMutablePointer<tcp_pcb>, len: UInt16) -> err_t {
     assert(arg != nil)
 
-    guard let socket = SocketDict.lookup(UnsafeMutablePointer<Int>(arg).memory) else {
+    guard let socket = SocketDict.lookup(UnsafeMutablePointer<Int>(arg).pointee) else {
         // we do not know what this socket is, abort it
         tcp_abort(pcb)
         return err_t(ERR_ABRT)
@@ -70,16 +70,16 @@ func tcp_sent_func(arg: UnsafeMutablePointer<Void>, pcb: UnsafeMutablePointer<tc
     return err_t(ERR_OK)
 }
 
-func tcp_err_func(arg: UnsafeMutablePointer<Void>, error: err_t) {
+func tcp_err_func(_ arg: UnsafeMutableRawPointer?, error: err_t) {
     assert(arg != nil)
 
-    SocketDict.lookup(UnsafeMutablePointer<Int>(arg).memory)?.errored(error)
+    SocketDict.lookup(UnsafeMutablePointer<Int>(arg).pointee)?.errored(error)
 }
 
 struct SocketDict {
     static var socketDict: [Int:TSTCPSocket] = [:]
 
-    static func lookup(id: Int) -> TSTCPSocket? {
+    static func lookup(_ id: Int) -> TSTCPSocket? {
         return socketDict[id]
     }
 
@@ -100,7 +100,7 @@ struct SocketDict {
  - note: This class is thread-safe.
  */
 public final class TSTCPSocket {
-    private var pcb: UnsafeMutablePointer<tcp_pcb>
+    fileprivate var pcb: UnsafeMutablePointer<tcp_pcb>?
     /// The source IPv4 address.
     public let sourceAddress: in_addr
     /// The destination IPv4 address
@@ -110,10 +110,10 @@ public final class TSTCPSocket {
     /// The destination port.
     public let destinationPort: UInt16
 
-    private let queue: dispatch_queue_t
-    private var identity: Int
-    private let identityArg: UnsafeMutablePointer<Int>
-    private var closedSignalSend = false
+    fileprivate let queue: DispatchQueue
+    fileprivate var identity: Int
+    fileprivate let identityArg: UnsafeMutablePointer<Int>
+    fileprivate var closedSignalSend = false
 
 
     var isValid: Bool {
@@ -122,7 +122,7 @@ public final class TSTCPSocket {
 
     /// Whether the socket is connected (we can receive and send data).
     public var isConnected: Bool {
-        return isValid && pcb.memory.state.rawValue >= ESTABLISHED.rawValue && pcb.memory.state.rawValue < CLOSED.rawValue
+        return isValid && pcb!.pointee.state.rawValue >= ESTABLISHED.rawValue && pcb!.pointee.state.rawValue < CLOSED.rawValue
     }
 
     /**
@@ -132,19 +132,19 @@ public final class TSTCPSocket {
      */
     public weak var delegate: TSTCPSocketDelegate?
 
-    init(pcb: UnsafeMutablePointer<tcp_pcb>, queue: dispatch_queue_t) {
+    init(pcb: UnsafeMutablePointer<tcp_pcb>, queue: DispatchQueue) {
         self.pcb = pcb
         self.queue = queue
 
         // see comments in "lwip/src/core/ipv4/ip.c"
-        sourcePort = pcb.memory.remote_port
-        destinationPort = pcb.memory.local_port
-        sourceAddress = in_addr(s_addr: pcb.memory.remote_ip.addr)
-        destinationAddress = in_addr(s_addr: pcb.memory.local_ip.addr)
+        sourcePort = pcb.pointee.remote_port
+        destinationPort = pcb.pointee.local_port
+        sourceAddress = in_addr(s_addr: pcb.pointee.remote_ip.addr)
+        destinationAddress = in_addr(s_addr: pcb.pointee.local_ip.addr)
 
         identity = SocketDict.newKey()
-        identityArg = UnsafeMutablePointer<Int>.alloc(1)
-        identityArg.memory = identity
+        identityArg = UnsafeMutablePointer<Int>(allocatingCapacity: 1)
+        identityArg.pointee = identity
         SocketDict.socketDict[identity] = self
 
         tcp_arg(pcb, identityArg)
@@ -153,7 +153,7 @@ public final class TSTCPSocket {
         tcp_err(pcb, tcp_err_func)
     }
 
-    func errored(error: err_t) {
+    func errored(_ error: err_t) {
         release()
         switch Int32(error) {
         case ERR_RST:
@@ -165,19 +165,19 @@ public final class TSTCPSocket {
         }
     }
 
-    func sent(length: Int) {
+    func sent(_ length: Int) {
         delegate?.didWriteData(length, from: self)
     }
 
-    func recved(buf: UnsafeMutablePointer<pbuf>) {
+    func recved(_ buf: UnsafeMutablePointer<pbuf>?) {
         if buf == nil {
             delegate?.localDidClose(self)
         } else {
-            let data = NSMutableData(length: Int(buf.memory.tot_len))!
-            pbuf_copy_partial(buf, data.mutableBytes, buf.memory.tot_len, 0)
-            delegate?.didReadData(data, from: self)
+            let data = NSMutableData(length: Int((buf?.pointee.tot_len)!))!
+            pbuf_copy_partial(buf, data.mutableBytes, (buf?.pointee.tot_len)!, 0)
+            delegate?.didReadData(data as Data, from: self)
             if isValid {
-                tcp_recved(pcb, buf.memory.tot_len)
+                tcp_recved(pcb, (buf?.pointee.tot_len)!)
             }
             pbuf_free(buf)
         }
@@ -188,13 +188,13 @@ public final class TSTCPSocket {
 
      - parameter data: The data to send.
      */
-    public func writeData(data: NSData) {
-        dispatch_async(queue) {
+    public func writeData(_ data: Data) {
+        queue.async {
             guard self.isValid else {
                 return
             }
 
-            let err = tcp_write(self.pcb, data.bytes, UInt16(data.length), UInt8(TCP_WRITE_FLAG_COPY))
+            let err = tcp_write(self.pcb, (data as NSData).bytes, UInt16(data.count), UInt8(TCP_WRITE_FLAG_COPY))
             if  err != err_t(ERR_OK) {
                 self.close()
             } else {
@@ -208,7 +208,7 @@ public final class TSTCPSocket {
      Close the socket. The socket should not be read or write again.
      */
     public func close() {
-        dispatch_async(queue) {
+        queue.async {
             guard self.isValid else {
                 return
             }
@@ -230,7 +230,7 @@ public final class TSTCPSocket {
      Reset the socket. The socket should not be read or write again.
      */
     public func reset() {
-        dispatch_async(queue) {
+        queue.async {
             guard self.isValid else {
                 return
             }
@@ -249,9 +249,9 @@ public final class TSTCPSocket {
 
     func release() {
         pcb = nil
-        identityArg.destroy()
-        identityArg.dealloc(1)
-        SocketDict.socketDict.removeValueForKey(identity)
+        identityArg.deinitialize()
+        identityArg.deallocate(capacity: 1)
+        SocketDict.socketDict.removeValue(forKey: identity)
     }
 
     deinit {
